@@ -13,34 +13,16 @@ namespace KafkaProducer.Controllers
     {
         private readonly ILogger<KafkaController> _logger;
         private readonly KafkaOptions _options;
-        private readonly string topic = "simpletalk_topic";
-        private readonly ProducerConfig config;
-
+        private readonly string topic = "topic";
+        private readonly ProducerConfig _producerConfig;
         public KafkaController(ILogger<KafkaController> logger, IOptions<KafkaOptions> options)
         {
             _logger = logger;
             _options = options.Value;
-            config = new()
+            _producerConfig = new()
             {
                 BootstrapServers = _options.BootstrapServers
             };
-        }
-
-        [HttpGet("/getMessages")]
-        public IEnumerable<WeatherForecast> Read()
-        {
-            var Summaries = new[]
-            {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
-
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
         }
 
         [HttpPost("/send")]
@@ -51,18 +33,22 @@ namespace KafkaProducer.Controllers
 
         private object? SendToKafka(string topic, string message)
         {
-            using (var producer = new ProducerBuilder<Null, string>(config).Build())
+            using (var producer = new ProducerBuilder<string, string>(_producerConfig).Build())
             {
                 try
                 {
-                    return producer.ProduceAsync(topic, new Message<Null, string> { Value = message })
+                    return producer.ProduceAsync(topic,
+                        new Message<string, string>
+                        {
+                            Key = DateTime.UtcNow.ToString(),
+                            Value = message
+                        })
                         .GetAwaiter()
                         .GetResult();
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine($"Oops, something went wrong: {e}");
-                    _logger.LogError(e, $"Oops, something went wrong: {e.Message}");
+                    _logger.LogError(ex, $"Oops, something went wrong: {ex.Message}");
                 }
             }
 

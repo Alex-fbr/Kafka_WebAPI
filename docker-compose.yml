@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - gateway
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    networks:
+      - gateway
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_HOST_NAME: kafka # docker-machine ip
+
+  producer:
+    image: producer
+    hostname: producer
+    build:
+      context: .
+      dockerfile: DockerfileProducer
+    ports:
+      - "5000:80"
+    networks:
+      - gateway
+    restart: on-failure
+
+  consumer:
+    image: consumer
+    hostname: consumer
+    build:
+      context: .
+      dockerfile: DockerfileConsumer
+    ports:
+      - "5001:81"
+    networks:
+      - gateway
+    restart: on-failure
+
+networks:
+  gateway: {}

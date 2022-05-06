@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "KafkaProducer": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:3002;http://localhost:3000",
+      "dotnetRunMessages": true
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true,
+      "applicationUrl": "http://localhost:5002;http://localhost:5000"
+    }
+  }
+}
